@@ -1,10 +1,11 @@
 export default function (err, req, res, next) {
-    err.statusCode = err.statusCode || 500;
-    err.status = err.status || "error";
+    err.statusCode ||= 500;
+    err.message ||= "Internal server error";
+    err.status ||= "error";
 
-    console.log(err.message);
+    console.log(err.statusCode);
     
-    res.status(err.statusCode).json({
+    res.status(err.message).json({
         status: err.status,
         error: err,
         message: err.message,

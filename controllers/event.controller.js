@@ -34,7 +34,7 @@ const getEvents = catchAsync( async (req, res,next) => {
 const createEvent = catchAsync(async (req, res, next) => {
     
     const { title, description, eventDate, alumniWelcome } = req.body;
-    console.log(req.user);
+    // console.log(req.user);
     
 
     const event = await Event.create({

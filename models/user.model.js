@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import validator from 'validator';
 import bcryptjs from 'bcryptjs';
+import validator from 'validator';
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -15,8 +15,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Please provide a email"],
         unique: true,
-        lowercase: true,
-        validate: [validator.isEmail, "Please provide a valid email"]
+        match: [
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\,.;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+            "Please provide a valid email"
+        ]
     },
     password: {
         type: String,
@@ -24,16 +26,16 @@ const userSchema = new mongoose.Schema({
         minlength: 8,
         select: false
     },
-    passwordConfirmation: {
-        type: String,
-        required: [true, "Please confirm a password"],
-        validate: {
-            validator: function(value) {
-                return this.password === value;
-            },
-            message: "Passwords do not match"
-        }
-    },
+    // passwordConfirm: {
+    //     type: String,
+    //     required: [true, "Please confirm your password"],
+    //     validate: {
+    //         validator: function(el) {
+    //             return el === this.password;
+    //         },
+    //         message: "Passwords do not match"
+    //     }
+    // },
     isVerified: {
         type: Boolean,
         default: false
@@ -72,7 +74,7 @@ userSchema.pre('save', async function (next){
 
     this.password = await bcryptjs.hash(this.password, 12);
 
-    this.passwordConfirmation = undefined;
+    // this.passwordConfirmation = undefined;
 
     next();
 
@@ -81,6 +83,8 @@ userSchema.pre('save', async function (next){
 userSchema.methods.correctPassword = async function (password, userPassword) {
     return await bcryptjs.compare(password, userPassword);
 };
+
+
 
 const User = mongoose.model('User', userSchema);
 

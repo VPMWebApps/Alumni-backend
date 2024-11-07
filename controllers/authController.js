@@ -21,18 +21,20 @@ const signToken = (id) => {
 
 const createSendToken = ( user, statusCode, res, message ) => {
     const token = signToken(user._id);
+    // console.log(token, user, message);
+    
 
     const cookieOptions = {
         expires: new Date( Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000 ),
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // Set secure to true in production
-        sameSite: process.env.NODE_ENV === 'production' ? "none" : "Lax"
+        sameSite: process.env.NODE_ENV === 'production' ? "none" : "Lax",
     };
 
     res.cookie('token', token, cookieOptions);
 
     user.password = undefined;
-    user.passwordConfirmation = undefined;
+    // user.passwordConfirmation = undefined;
     user.otp = undefined;
 
     res.status(statusCode).json({
@@ -48,9 +50,9 @@ const createSendToken = ( user, statusCode, res, message ) => {
 
 // Sign up endpoint
 const signup = catchAsync( async (req, res, next) => {
-    const { username, password, passwordConfirmation, email } = req.body;
+    const { username, email, password } = req.body; // passwordConfirmation
 
-    if(!email || !username || !password || !passwordConfirmation) {
+    if(!email || !username || !password) { // !passwordConfirmation
         next(new AppError("Please provide all necessary fields", 400));
     }
 
@@ -68,10 +70,12 @@ const signup = catchAsync( async (req, res, next) => {
         username,
         email,
         password,
-        passwordConfirmation,
+        // passwordConfirmation,
         otp,
         otpExpires
     })
+
+    // await newUser.save();    
 
     try {
         await sendEmail({
@@ -91,12 +95,13 @@ const signup = catchAsync( async (req, res, next) => {
 });
 
 // Verification endpoint
-const verifyAccount = catchAsync(async (req, res, next) => {
+const verifyAccount = catchAsync(async (req, res, next) => { 
     const { otp } = req.body;
 
     if(!otp) return next(new AppError("OTP is missing!", 400));
 
     const user = req.user;
+    // console.log(user);
 
     if(user.otp !== otp) return next(new AppError("Invalid OTP", 400))
 
@@ -217,7 +222,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
 
 // Reset Password endpoint
 const resetPassword = catchAsync(async (req, res, next) => {
-    const { email, otp, password, passwordConfirmation } = req.body;
+    const { email, otp, password } = req.body; // passwordConfirmation
 
     const user = await User.findOne({ 
         email,
@@ -228,7 +233,7 @@ const resetPassword = catchAsync(async (req, res, next) => {
     if(!user) return next(new AppError("No user found.", 400));
 
     user.password = password;
-    user.passwordConfirmation = passwordConfirmation;
+    // user.passwordConfirmation = passwordConfirmation;
     user.resetPasswordOTP = undefined;
     user.resetPasswordOTPExpires = undefined;
 

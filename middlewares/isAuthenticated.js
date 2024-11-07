@@ -1,9 +1,13 @@
 import jwt from 'jsonwebtoken';
 import catchAsync from '../utils/catchAsync.js';
 import User from '../models/user.model.js';
+import AppError from '../utils/appError.js';
 
 const isAuthenticated = catchAsync(async (req, res, next) => {
+
     const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+    console.log(req.cookies);
+    console.log(req.headers.authorization?.split(' ')[1]);
 
     if (!token) {
         return next(new AppError('You are not authenticated! Please login.', 401));
@@ -21,6 +25,6 @@ const isAuthenticated = catchAsync(async (req, res, next) => {
     // console.log('User: ',req.user);
     next();
 
-})
+});
 
 export default isAuthenticated;
